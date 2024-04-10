@@ -1,0 +1,89 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  PROFESSOR
+}
+
+model User {
+  id Int @id @default(autoincrement())
+
+  name         String
+  email        String @unique
+  passwordHash String
+
+  role UserRole
+
+  ideas           Idea[]
+  ideasOfInterest Idea[] @relation("ideasOfInterest")
+
+  files File[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// TODO: Add an field for attached files
+model Idea {
+  id Int @id @default(autoincrement())
+
+  title    String
+  abstract String
+
+  keywords Keyword[]
+
+  usersInterested User[] @relation("ideasOfInterest")
+
+  similarIdeas SimilarIdea[]
+
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SimilarIdea {
+  id Int @id @default(autoincrement())
+
+  score Int
+
+  ideaId Int
+  idea   Idea @relation(fields: [ideaId], references: [id])
+}
+
+model Keyword {
+  id Int @id @default(autoincrement())
+
+  keyword String @unique
+
+  ideas Idea[]
+}
+
+model File {
+  id Int @id @default(autoincrement())
+
+  name String
+
+  content    String
+  highlights Json
+
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
